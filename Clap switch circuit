@@ -1,0 +1,45 @@
+// Pin Definitions
+const int micPin = A0;       // Pin connected to the mic sensor
+const int gndPin = A1;       // Pin for mic ground
+const int powerPin = A2;     // Pin for mic power
+const int relayPin = 13;     // Pin connected to the relay module
+boolean lightOn = false;     // State of the relay-controlled light
+const int threshold = 50;    // Adjusted sound threshold for a clap
+unsigned long lastClapTime = 0; // Timestamp of the last detected clap
+const unsigned long debounceDelay = 50; // Minimum time between claps (ms)
+
+void setup() {
+  // Pin modes
+  pinMode(relayPin, OUTPUT); // Relay control pin
+  pinMode(powerPin, OUTPUT); // Power for mic sensor
+  pinMode(gndPin, OUTPUT);   // Ground for mic sensor
+  pinMode(micPin, INPUT);    // Mic sensor input
+  
+  // Initialize mic power
+  digitalWrite(gndPin, LOW);
+  digitalWrite(powerPin, HIGH);
+  
+  // Start with relay OFF
+  digitalWrite(relayPin, LOW);
+  
+  // Initialize serial monitor for debugging (optional)
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Read microphone value
+  int micValue = analogRead(micPin);
+
+  // Print value (optional for debugging)
+  Serial.println(micValue);
+
+  // Detect sound level indicating a clap
+  if (micValue > threshold && millis() - lastClapTime > debounceDelay) {
+    lightOn = !lightOn; // Toggle light state
+    digitalWrite(relayPin, lightOn ? HIGH : LOW); // Control the relay
+    lastClapTime = millis(); // Update last clap time
+    Serial.println(lightOn ? "Relay ON" : "Relay OFF"); // Debug output
+  }
+
+  delay(1); // Small delay for stability
+}
